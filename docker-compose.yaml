@@ -1,0 +1,74 @@
+version: "3.9"
+
+services:
+  backend:
+    container_name: backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    restart: always
+    command: >
+      sh -c "gunicorn config.wsgi:application --bind 0.0.0.0:8008"
+    depends_on:
+      - database
+    networks:
+      - app_network
+    volumes:
+      - .:/user_pets
+
+  migration:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    command: >
+      sh -c "
+            python manage.py makemigrations users pets &&
+            python manage.py migrate
+            "
+    volumes:
+      - .:/user_pets
+    depends_on:
+      - database
+
+  database:
+    container_name: postgres_prod
+    image: postgres:14.7-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    networks:
+      - app_network
+    volumes:
+      - postgres:/var/lib/postgresql/data/
+
+  nginx:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    env_file: .env
+    ports:
+      - "8080:8080"
+    volumes_from:
+      - backend
+    volumes:
+      - ./static:/static/
+    restart: always
+    networks:
+      - app_network
+    links:
+      - backend
+    depends_on:
+      - backend
+      - database
+
+volumes:
+  postgres:
+  static:
+
+networks:
+  app_network:

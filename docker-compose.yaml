@@ -10,12 +10,17 @@ services:
     restart: always
     command: >
       sh -c "gunicorn config.wsgi:application --bind 0.0.0.0:8008"
-    depends_on:
-      - database
+    # depends_on:
+    #   - database
     networks:
       - app_network
     volumes:
       - .:/user_pets
+    depends_on:
+      database:
+        condition: service_started
+      migration:
+        condition: service_completed_successfully
 
   migration:
     build:
@@ -25,15 +30,18 @@ services:
     command: >
       sh -c "
             python manage.py makemigrations users pets &&
-            python manage.py migrate
+            python manage.py migrate &&
+            python manage.py collectstatic
             "
+    networks:
+      - app_network
     volumes:
       - .:/user_pets
     depends_on:
       - database
 
   database:
-    container_name: postgres_prod
+    container_name: postgres
     image: postgres:14.7-alpine
     restart: unless-stopped
     environment:

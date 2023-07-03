@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "user-pets"
+version = "0.1.0"
+description = ""
+authors = ["Vas <vas@va.va>"]
+readme = "README.md"
+packages = [{include = "user_pets"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^4.2.3"
+django-cors-headers = "^4.1.0"
+djangorestframework-simplejwt = "^5.2.2"
+djangorestframework = "^3.14.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

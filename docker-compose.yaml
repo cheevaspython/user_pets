@@ -31,7 +31,7 @@ services:
       sh -c "
             python manage.py makemigrations users pets &&
             python manage.py migrate &&
-            python manage.py collectstatic
+            python manage.py collectstatic --noinput 
             "
     networks:
       - app_network
